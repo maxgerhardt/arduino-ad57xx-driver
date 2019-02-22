@@ -13,7 +13,7 @@ change the pins for LDAC, CLR, RESET and SYNC (SPI slave-select) to any free GPI
 SDO (=MISO) SDIN (=MOSI) and SCLK to your board's SPI bus.
 
 Check the connections on J3 on the eval board for pin mappings
-([datasheet](https://www.analog.com/media/en/technical-documentation/user-guides/UG-256.pdf). 
+([datasheet](https://www.analog.com/media/en/technical-documentation/user-guides/UG-256.pdf)). 
 
 You must also connect common DGND (digital GND) between the eval and the Arduino board.
 
