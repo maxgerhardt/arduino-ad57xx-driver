@@ -177,6 +177,8 @@ unsigned char SPI_Read(unsigned char slaveDeviceId,
 	//transfer data, read data is saved in "data" again
 	SPI.transfer(data, bytesNumber);
 	SPI.endTransaction();
+	//deselect device again
+	PinMgt_PinWrite(PIN_ID_AD57XX_SLAVE_SELECT, PINMGR_OUTPUT_HIGH);
 	return bytesNumber;
 }
 
@@ -206,5 +208,6 @@ unsigned char SPI_Write(unsigned char slaveDeviceId,
 		//ignore returned value
 	}
 	SPI.endTransaction();
+	PinMgt_PinWrite(PIN_ID_AD57XX_SLAVE_SELECT, PINMGR_OUTPUT_HIGH);
 	return bytesNumber;
 }
