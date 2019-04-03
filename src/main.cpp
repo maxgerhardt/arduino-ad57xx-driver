@@ -1,74 +1,64 @@
 #include <Arduino.h>
-#include <AD57xx.h>
+#include <AD5780.h>
 
 void setup() {
 	Serial.begin(115200);
 	Serial.println("FIRMWARE STARTUP");
 
 	/* same setup as in the RL78G13 driver example's Main.c */
-	if(AD57XX_Init(AD5780))
-	{
-		Serial.println("AD57XX OK");
-	}
-	else
-	{
-		Serial.println("AD57XX Err");
+	if (AD5780_Init()) {
+		Serial.println("AD5780_Init OK");
+	} else {
+		Serial.println("AD5780_Init Err");
 	}
 
 	/* Resets the device to its power-on state. */
-	AD57XX_SoftInstruction(AD57XX_SOFT_CTRL_RESET);
+	AD5780_SoftInstruction(AD5780_SOFT_CTRL_RESET);
 
 	/* Enables the DAC output. */
-	AD57XX_EnableOutput(1);
+	AD5780_EnableOutput(1);
 
 	/* The DAC register is set to use offset binary coding. */
-	AD57XX_Setup(AD57XX_CTRL_BIN2SC);
+	AD5780_Setup(AD5780_CTRL_BIN2SC);
 
 	/* Sets the value to which the DAC output is set when CLEAR is enabled. */
-	AD57XX_SetClearCode(0x20000);
+	AD5780_SetRegisterValue(AD5780_REG_CLR_CODE, AD5780_CLR_CODE_DATA(0x20000),
+			3);
 
 	/* Performs a soft CLEAR operation. */
-	AD57XX_SoftInstruction(AD57XX_SOFT_CTRL_CLR);
+	AD5780_SoftInstruction(AD5780_SOFT_CTRL_CLR);
 
-    /* Reads and displays the internal registers. */
-     /* Read DAC. */
-    long result = AD57XX_GetRegisterValue(AD57XX_REG_DAC);
-    result = (result & 0xFFFFC) >> 2;
-    Serial.print("DAC REG: ");
-    Serial.println(result, HEX);
+	/* Reads and displays the internal registers. */
+	/* Read DAC. */
+	long result = AD5780_GetRegisterValue(AD5780_REG_DAC, 3);
+	result = (result & 0xFFFFC) >> 2;
+	Serial.print("DAC REG: ");
+	Serial.println(result, HEX);
 
-    /* Read Control. */
-    result = AD57XX_GetRegisterValue(AD57XX_REG_CTRL);
-    result = (result & 0x3E);  // Only Bits 5 through 1 are holding information.
-    Serial.print("CTRL REG: ");
-    Serial.println(result, HEX);
+	/* Read Control. */
+	result = AD5780_GetRegisterValue(AD5780_REG_CTRL, 3);
+	result = (result & 0x3E);  // Only Bits 5 through 1 are holding information.
+	Serial.print("CTRL REG: ");
+	Serial.println(result, HEX);
 
-    /* Read ClearCode. */
-    result = AD57XX_GetRegisterValue(AD57XX_REG_CLR_CODE);
-    result = (result & 0xFFFFC) >> 2;
-    Serial.print("CLEAR CODE: ");
-    Serial.println(result, HEX);
+	/* Read ClearCode. */
+	result = AD5780_GetRegisterValue(AD5780_REG_CLR_CODE, 3);
+	result = (result & 0xFFFFC) >> 2;
+	Serial.print("CLEAR CODE: ");
+	Serial.println(result, HEX);
 }
 
-long dacVal  = 0;
-long step    = 0;
-long maxCode = 0x3FFFF;    // 18 bits
-long minCode = 0;
+long dacVal = 0;
+long step = 0;
 
 void loop() {
 	/* generate a triangle signal. */
-	if(dacVal >= maxCode - step)
-	{
-		step = -250;
-	}
-	else if(dacVal <= minCode - step)
-	{
-		step = 250;
+	if (dacVal >= (0x00037000 - step)) {
+		step = -256;
+	} else if (dacVal <= (0x00000000 - step)) {
+		step = 256;
 	}
 	dacVal += step;
-	AD57XX_SetDacValue(dacVal);
-	//50 microseconds is a very short amount of time
-	//if pinMode() and digitalWrite() is used in the pin management layer,
-	//these will take so long that 50uS is small in comparison..
-	delayMicroseconds(50);
+	AD5780_SetDacValue(dacVal);
+	delayMicroseconds(1000);
 }
